@@ -37,14 +37,26 @@ function clickOnArea(area) {
 }
 
 async function getSeat() {
-    let frame = theFrame();
-     seatArray = frame.getElementById("divSeatArray").children;
-    availableSeats = frame.querySelector('#divSeatArray .s9');
-    if (availableSeats) {
-        var clickEvent = new Event('click', { bubbles: true });
-        availableSeats[0].dispatchEvent(clickEvent);
+    const response = await fetch('http://127.0.0.1:1057/auto_click', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: ''
+    });
+    if (!response.ok) console.error(`Captcha API failed with status: ${response.status}`);
+    const result = await response.json();
+    const resultText = result.text;
+    if (resultText == 'clicked') {
         return true;
-    }
+    } else { return false; }
+    
+    // let frame = theFrame();
+    //  seatArray = frame.getElementById("divSeatArray").children;
+    // availableSeats = frame.querySelector('#divSeatArray .s9');
+    // if (availableSeats) {
+    //     var clickEvent = new Event('click', { bubbles: true });
+    //     availableSeats[0].dispatchEvent(clickEvent);
+    //     return true;
+    // }
 
     // elementToClick = frame.getElementById('t2100059');
     // selectElement = window.frames[0].document.getElementById('t2200058');
@@ -55,10 +67,10 @@ async function getSeat() {
     //     if (seatArray[i].className === "s9") {
     //         seatArray[i].click();
     //         // await sleep(2000);
-    //         // clickOnArea(frame.getElementsByClassName("booking")[0]);
-    //         var bookingLink = frame.getElementsByClassName("booking")[0];
-    //         // let bookingLink = frame.querySelector('img.booking');
-    //         bookingLink.parentElement.click();
+            // clickOnArea(frame.getElementsByClassName("booking")[0]);
+            // var bookingLink = frame.getElementsByClassName("booking")[0];
+            // // let bookingLink = frame.querySelector('img.booking');
+            // bookingLink.parentElement.click();
     //         // reactivateEndButton();
     //         // await sleep(2000);
     //         return true;
@@ -141,10 +153,16 @@ async function searchSeat(data) {
         console.log(document.getElementsByTagName("iframe"));
         openEverySection();
         clickOnArea(area);
-        if (await getSeat()) {
-            // reactivateEndButton();
-            return;
+        const clicked = await getSeat();
+        if (clicked) {
+            let bookingLink = window.frames[0].document.getElementsByClassName("booking")[0];
+            // let bookingLink = frame.querySelector('img.booking');
+            bookingLink.parentElement.click();
         }
+        // if (await getSeat()) {
+        //     // reactivateEndButton();
+        //     return;
+        // }
         console.log("no seat");
         await sleep(1000);
         // reload();
