@@ -6,34 +6,63 @@ function getConcertId() {
     return concertId;
 }
 
-function openEverySection() {
+function selectPrice(targetPrice) {
     let frame = theFrame();
-    let section = frame.getElementsByName("btnGrade");
-    console.log(section);
-    // for (let i = 0; i < section.length; i++) {
-    //     section[i].click();
+    // let section = frame.getElementsByName("btnGrade");
+    let sections = frame.querySelectorAll('p[name="btnGrade"]');
+    console.log(sections);
+    for (const btn of sections) {
+        if (btn.innerText.includes(targetPrice)) {
+            btn.click();
+            return;
+        }
+    }
+    if (targetPrice == null) {
+        btn[0].click();
+    }
+}
+
+async function selectSeat(areas) {
+    for (const area of areas){
+       clickOnArea(area);
+       // TODO: insert pick grape code
+       // integrated fuction getSeat();
+       await sleep(1000) ;
+    }
+    // try {
+    //     ChoiceEnd();
+    // } catch(e) {
+    //     let frame = theFrame();
+    //     // const btn = frame.querySelector('a[href="javascript:ChoiceEnd();"]');
+    //     // if (btn) {
+    //     //     btn.click();
+    //     // }
+    //     // unsafeWindow.ChoiceEnd();
+    //     disableEndButton();
+    //     var script = frame.createElement('script');
+    //     script.textContent = 'ChoiceEnd();';
+    //     (frame.head || frame.body || frame.documentElement).appendChild(script);
+    //     reactivateEndButton(); 
+    //     script.remove();
     // }
-    section[0].click();
+
 }
 
 function clickOnArea(area) {
     let frame = theFrame();
-    // let section = frame.getElementsByClassName("seat_layer");
-    var sectionButton = frame.querySelector("ul.seat_layer > li");
-    if (sectionButton) {
-        sectionButton.click();
+    // var sectionButton = frame.querySelector("ul.seat_layer > li");
+    const items = frame.querySelectorAll('.seat_layer li');
+    
+    for (const item of items) {
+        if (item.innerText.includes(area)) {
+            item.click();
+            return true;
+        }
     }
-    // for (let i = 0; i < section.length; i++) {
-    //     let reg = new RegExp(area + "\$","g");
-    //     if (section[i].innerHTML.match(reg)) {
-    //         console.log("目前的section : ", section[i]);
-    //         section[i].click();
-    //         return;
-    //     }
-    //     else {
-    //         section[0].click();
-    //     }
-    // }
+
+//     if (sectionButton) {
+//         sectionButton.click();
+//     }
 }
 
 async function getSeat() {
@@ -48,60 +77,7 @@ async function getSeat() {
     if (resultText == 'clicked') {
         return true;
     } else { return false; }
-    
-    // let frame = theFrame();
-    //  seatArray = frame.getElementById("divSeatArray").children;
-    // availableSeats = frame.querySelector('#divSeatArray .s9');
-    // if (availableSeats) {
-    //     var clickEvent = new Event('click', { bubbles: true });
-    //     availableSeats[0].dispatchEvent(clickEvent);
-    //     return true;
-    // }
-
-    // elementToClick = frame.getElementById('t2100059');
-    // selectElement = window.frames[0].document.getElementById('t2200058');
-    // selectElement.classList.replace('s9', 'son');
-    // console.log(seatArray.length);
-    // for (let i = 0; i < seatArray.length; i++) {
-    //     // let seat = seatArray[i];
-    //     if (seatArray[i].className === "s9") {
-    //         seatArray[i].click();
-    //         // await sleep(2000);
-            // clickOnArea(frame.getElementsByClassName("booking")[0]);
-            // var bookingLink = frame.getElementsByClassName("booking")[0];
-            // // let bookingLink = frame.querySelector('img.booking');
-            // bookingLink.parentElement.click();
-    //         // reactivateEndButton();
-    //         // await sleep(2000);
-    //         return true;
-    //     }
-    //     console.log(seat.id);
-    // }
-    // return false;
 }
-
-
-// async function findSeat() {
-//     let frame = theFrame();
-//     let canvas = frame.document.getElementById("ez_canvas");
-//     let seat = canvas.getElementsByTagName("rect");
-//     console.log(seat);
-//     await sleep(750);
-//     for (let i = 0; i < seat.length; i++) {
-//         let fillColor = seat[i].getAttribute("fill");
-    
-//         // Check if fill color is different from #DDDDDD or none
-//         if (fillColor !== "#DDDDDD" && fillColor !== "none") {
-//             console.log("Rect with different fill color found:", seat[i]);
-//             var clickEvent = new Event('click', { bubbles: true });
-
-//             seat[i].dispatchEvent(clickEvent);
-//             frame.document.getElementById("nextTicketSelection").click();
-//             return true;
-//         }
-//     }
-//     return false;
-// }
 
 async function selectDate(data) {
     let date = data.date;
@@ -148,37 +124,18 @@ function reactivateEndButton() {
 }
 
 async function searchSeat(data) {
-    for (area of data.section) {
-        // disableEndButton();
-        console.log(document.getElementsByTagName("iframe"));
-        openEverySection();
-        clickOnArea(area);
-        const clicked = await getSeat();
-        if (clicked) {
-            let bookingLink = window.frames[0].document.getElementsByClassName("booking")[0];
-            // let bookingLink = frame.querySelector('img.booking');
-            bookingLink.parentElement.click();
-        }
-        // if (await getSeat()) {
-        //     // reactivateEndButton();
-        //     return;
-        // }
-        console.log("no seat");
-        await sleep(1000);
-        // reload();
-        return; 
-
-    }
+    console.log(document.getElementsByTagName("iframe"));
+    selectPrice(data.price);
+    selectSeat(data.section);
+    // if (await getSeat()) {
+    //     // reactivateEndButton();
+    //     return;
+    // }
+    // console.log("no seat");
+    // await sleep(1000);
+    // // reload();
+    // return; 
 }
-
-// async function searchSeat() {
-//     let concertId = getConcertId();
-//     let data = await get_stored_value(concertId);
-//     await sleep(1000);
-//     selectDate(data);
-//     await sleep(1000);
-//     findSeat();
-// }
 
 async function start() {
     await sleep(2000);
