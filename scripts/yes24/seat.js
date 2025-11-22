@@ -12,26 +12,28 @@ function selectPrice(targetPrice) {
     let sections = frame.querySelectorAll('p[name="btnGrade"]');
     console.log(sections);
     for (const btn of sections) {
-        if (btn.innerText.includes(targetPrice)) {
+        if (targetPrice == null) {
+            btn[0].click();
+            return;
+        }
+        else if (btn.innerText.includes(targetPrice)) {
             btn.click();
             return;
         }
-    }
-    if (targetPrice == null) {
-        btn[0].click();
     }
 }
 
 async function selectSeat(areas) {
     for (const area of areas){
-       clickOnArea(area);
-       // TODO: insert pick grape code
-       // integrated fuction getSeat();
-       await sleep(1000) ;
-       if (await getSeat()) {
-        return true;
-       }
+        var rnd_delay;
+        clickOnArea(area);
+        rnd_delay = getRandomInt(1000, 1500);
+        await sleep(rnd_delay) ;
+        if (await getSeat()) {
+            return true;
+        }
     }
+    return false;
     // try {
     //     ChoiceEnd();
     // } catch(e) {
@@ -62,10 +64,6 @@ function clickOnArea(area) {
             return true;
         }
     }
-
-//     if (sectionButton) {
-//         sectionButton.click();
-//     }
 }
 
 async function getSeat() {
@@ -114,6 +112,12 @@ function reload() {
     getSeat();
 }
 
+function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    // 公式： (最大值 - 最小值 + 1) + 最小值
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 
 function disableEndButton() {
     const frame = theFrame();
@@ -127,17 +131,17 @@ function reactivateEndButton() {
 }
 
 async function searchSeat(data) {
+    let findSeat = false;
     console.log(document.getElementsByTagName("iframe"));
     selectPrice(data.price);
-    selectSeat(data.section);
-    // if (await getSeat()) {
-    //     // reactivateEndButton();
-    //     return;
-    // }
-    // console.log("no seat");
-    // await sleep(1000);
-    // // reload();
-    // return; 
+    while (!findSeat) {
+        // findSeat = selectSeat(data.section);
+        if (await (selectSeat(data.section))) {
+            console.log("Seat found and selected!");
+            break;
+        }
+        // await sleep(1000); // Wait 1000ms (1 second)
+    }
 }
 
 async function start() {
