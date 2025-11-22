@@ -52,8 +52,11 @@ def auto_click():
         time.sleep(0.5)
         seating_map_sc = pyautogui.screenshot(region=(0, 0, half_width//scale_factor_width, half_height//scale_factor_height)).convert('RGB')
         seating_map = np.asarray(seating_map_sc)
-        matches = np.all(seating_map == grape_color, axis=-1)
+        distances = np.sqrt(np.sum((seating_map - grape_color)**2, axis=-1))
+        matches = (distances < 20)
+        # matches = np.all(seating_map == grape_color, axis=-1)
         if matches.any():
+            print("get")
             # Get the coordinates of the matches
             match_coords = np.argwhere(matches)[0]
             pyautogui.leftClick(x=match_coords[1], y=match_coords[0])

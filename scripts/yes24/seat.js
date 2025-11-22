@@ -28,6 +28,9 @@ async function selectSeat(areas) {
        // TODO: insert pick grape code
        // integrated fuction getSeat();
        await sleep(1000) ;
+       if (await getSeat()) {
+        return true;
+       }
     }
     // try {
     //     ChoiceEnd();
