@@ -1,3 +1,6 @@
+const HOST_NAME = "591CrawlerBot";
+const WEBHOOK_URL = "https://discord.com/api/webhooks/1408177293901434890/k1GQa9PpqDLDbg--5U0cG8_mqFfMXtegzHga6ZVVkRvNpWDS_tJLl16oRdM1n7m-qoT3";
+
 let seatSelect = [];
 
 function getConcertId() {
@@ -32,6 +35,7 @@ async function selectSeat(areas) {
         if (await getSeat()) {
             return true;
         }
+        await sleep(getRandomInt(500, 3000));
     }
     return false;
     // try {
@@ -66,6 +70,14 @@ function clickOnArea(area) {
     }
 }
 
+async function sendDiscordNotification(message) {
+    await fetch(WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: message })
+    });
+}
+
 async function getSeat() {
     const response = await fetch('http://127.0.0.1:1057/auto_click', {
         method: 'POST',
@@ -76,6 +88,9 @@ async function getSeat() {
     const result = await response.json();
     const resultText = result.text;
     if (resultText == 'clicked') {
+        const now = new Date();
+        const timeString = `${now.getMonth() + 1}/${now.getDate()} ${now.getHours()}:${now.getMinutes().toString().padStart(2, "0")}:${now.getSeconds().toString().padStart(2, "0")}`;
+        await sendDiscordNotification(`[${HOST_NAME}]\n 時間 : ${timeString} 搶到票`);
         return true;
     } else { return false; }
 }
@@ -140,7 +155,6 @@ async function searchSeat(data) {
             console.log("Seat found and selected!");
             break;
         }
-        // await sleep(1000); // Wait 1000ms (1 second)
     }
 }
 
