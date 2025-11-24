@@ -56,7 +56,6 @@ def auto_click():
         global complete_y
         if not (complete_x or complete_y):
             complete_x, complete_y = seach_complete_button()
-        # TODO: fixed offset 20 above complete button
         seating_map_sc = pyautogui.screenshot(region=(start_x, start_y, end_x, end_y)).convert('RGB')
         seating_map = np.asarray(seating_map_sc)
         hsv = cv2.cvtColor(seating_map, cv2.COLOR_RGB2HSV)
