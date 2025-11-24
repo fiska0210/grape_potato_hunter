@@ -19,11 +19,20 @@ scale_factor_height = int(height / screen_height)
 print("Screen scale factor width, height:", scale_factor_width, scale_factor_height)
 half_width = width // 2
 half_height = height // 2
+# Seating map area
+start_x = 0
+end_x = 740
+start_y = 200
+end_y = 500
 root.destroy()
 app = Flask(__name__)
 CORS(app, origins=['http://localhost:1057', 'https://ticket.yes24.com'])
 complete_x = None
 complete_y = None
+
+# Define a range for "gray" in HSV (low saturation)
+lower_gray = np.array([0, 0, 0])  # Example: low saturation, moderate value
+upper_gray = np.array([180, 20, 255]) # Example: low saturation, moderate value
 
 def seach_complete_button():
     screen_shot = pyautogui.screenshot(region=(half_width//scale_factor_width, half_height//scale_factor_height, 
@@ -42,26 +51,26 @@ def seach_complete_button():
 # ==============================================================================
 @app.route('/auto_click', methods=['POST'])
 def auto_click():
-    # data = request.get_json()
-    # grape_color = [91, 203, 205]
-    # grape_color = [78, 53, 213]
-    grape_color = [140, 38, 194]
     try:
         global complete_x
         global complete_y
-        time.sleep(0.5)
-        seating_map_sc = pyautogui.screenshot(region=(0, 0, half_width//scale_factor_width, half_height//scale_factor_height)).convert('RGB')
+        if not (complete_x or complete_y):
+            complete_x, complete_y = seach_complete_button()
+        # TODO: fixed offset 20 above complete button
+        seating_map_sc = pyautogui.screenshot(region=(start_x, start_y, end_x, end_y)).convert('RGB')
         seating_map = np.asarray(seating_map_sc)
-        distances = np.sqrt(np.sum((seating_map - grape_color)**2, axis=-1))
-        matches = (distances < 20)
-        # matches = np.all(seating_map == grape_color, axis=-1)
+        hsv = cv2.cvtColor(seating_map, cv2.COLOR_RGB2HSV)
+        # Create a mask for gray pixels
+        mask_gray = cv2.inRange(hsv, lower_gray, upper_gray)
+        # Invert the mask to get non-gray pixels
+        mask_nongray = cv2.bitwise_not(mask_gray)
+        result_nongray = cv2.bitwise_and(seating_map, seating_map, mask=mask_nongray)
+        matches = np.all(result_nongray != [0, 0, 0], axis=-1)
         if matches.any():
             print("get")
             # Get the coordinates of the matches
             match_coords = np.argwhere(matches)[0]
-            pyautogui.leftClick(x=match_coords[1], y=match_coords[0])
-            if not (complete_x or complete_y):
-                complete_x, complete_y = seach_complete_button()
+            pyautogui.leftClick(x=(match_coords[1]+start_x), y=(match_coords[0]+start_y))
             pyautogui.leftClick(x=complete_x, y=complete_y)
             time.sleep(0.5)
             pyautogui.leftClick(x=complete_x, y=complete_y)
