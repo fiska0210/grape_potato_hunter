@@ -35,16 +35,19 @@ lower_gray = np.array([0, 0, 0])  # Example: low saturation, moderate value
 upper_gray = np.array([180, 20, 255]) # Example: low saturation, moderate value
 
 def seach_complete_button():
-    screen_shot = pyautogui.screenshot(region=(half_width//scale_factor_width, half_height//scale_factor_height, 
-                                               width//scale_factor_width, height//scale_factor_height)).convert('RGB')
-    gray_img = cv2.cvtColor(np.asarray(screen_shot), cv2.COLOR_RGB2GRAY)
-    _, thresh_regions = cv2.threshold(gray_img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-    detected_text = pytesseract.image_to_data(thresh_regions, config='--psm 6', output_type=pytesseract.Output.DATAFRAME) # psm 6 for single uniform block of text
-    labels = ['left', 'top', 'width', 'height']
-    coord = [detected_text.loc[detected_text['text'] == 'completed', l].iloc[0] for l in labels]
-    click_x = (half_width + coord[0] + (coord[2] // 2)) // scale_factor_width
-    click_y = (half_height + coord[1]) // scale_factor_height
-    return click_x, click_y
+    try:
+        screen_shot = pyautogui.screenshot(region=(half_width//scale_factor_width, half_height//scale_factor_height, 
+                                                width//scale_factor_width, height//scale_factor_height)).convert('RGB')
+        gray_img = cv2.cvtColor(np.asarray(screen_shot), cv2.COLOR_RGB2GRAY)
+        _, thresh_regions = cv2.threshold(gray_img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        detected_text = pytesseract.image_to_data(thresh_regions, config='--psm 6', output_type=pytesseract.Output.DATAFRAME) # psm 6 for single uniform block of text
+        labels = ['left', 'top', 'width', 'height']
+        coord = [detected_text.loc[detected_text['text'] == 'completed', l].iloc[0] for l in labels]
+        click_x = (half_width + coord[0] + (coord[2] // 2)) // scale_factor_width
+        click_y = (half_height + coord[1]) // scale_factor_height
+        return click_x, click_y
+    except:
+        return None, None
 
 # ==============================================================================
 #      FLASK API ENDPOINT
@@ -56,6 +59,8 @@ def auto_click():
         global complete_y
         if not (complete_x or complete_y):
             complete_x, complete_y = seach_complete_button()
+            if not (complete_x or complete_y):
+                raise ValueError("Failed to find complete button")
         seating_map_sc = pyautogui.screenshot(region=(start_x, start_y, end_x, end_y)).convert('RGB')
         seating_map = np.asarray(seating_map_sc)
         hsv = cv2.cvtColor(seating_map, cv2.COLOR_RGB2HSV)
@@ -75,6 +80,8 @@ def auto_click():
             pyautogui.leftClick(x=complete_x, y=complete_y)
             return jsonify({'text': "clicked"})
         return jsonify({'text': "floor"})
+    except ValueError as e:
+        return jsonify({'text': "seating map not loaded", 'message': str(e)})
     except Exception as e:
         import traceback
         traceback.print_exc()
